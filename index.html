@@ -127,7 +127,7 @@
 
     // --- LÓGICA DE CONTRASEÑA ---
     let intentos = 0;
-    const passwordCorrecta = "06112024";
+    const passwordCorrecta = "AMARILLO";
 
     // Permitir enter para enviar
     document.getElementById("password").addEventListener("keypress", function(event) {
@@ -146,9 +146,9 @@
       } else {
         intentos++;
         if (intentos === 1) {
-          hint.textContent = "Pista: Es una fecha ❤️";
+          hint.textContent = "Pista: Es una palabra con la que me describes y esta escrita en mayusculas.";
         } else if (intentos === 2) {
-          hint.textContent = "Pista: Es el día que te cargué en mis brazos 💕";
+          hint.textContent = "Pista: Tiene que ver con una descripcion mia ";
         } else {
           hint.textContent = "Sigue intentando, sé que lo recordarás 😉";
         }
@@ -207,4 +207,5 @@
 </body>
 
 </html>
+
 
