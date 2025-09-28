@@ -169,13 +169,13 @@
       const btn = document.getElementById('modal-btn');
 
       if (tipo === 'beso') {
-        title.textContent = "💋 Cupón válido";
+        title.textContent = "💋 Cupón inválido";
         text.textContent = "Este cumpón ya fue cambiado por un beso 😘";
         btn.textContent = "Cerrar";
         btn.onclick = cerrarModal;
       } else if (tipo === 'hamburguesa') {
         title.textContent = "🍔 Cupón válido";
-        text.textContent = "Este cupón ya fue cambiado por una hamburguesa 🍔 Espero la hayas disfrutado.";
+        text.textContent = "Este cupón es valido para una hamburguesa 🍔.";
         btn.textContent = "Cerrar";
         btn.onclick = cerrarModal;
       } else if (tipo === 'nuevo') {
@@ -205,4 +205,5 @@
     }
   </script>
 </body>
+
 </html>
