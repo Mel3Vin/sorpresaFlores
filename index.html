@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Flores y Cupones</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transition: background-image 1s ease-in-out;
+    }
+    
+    /* Gradientes de respaldo románticos */
+    .bg-gradient-1 {
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    }
+    
+    .bg-gradient-2 {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+    }
+    
+    .bg-gradient-3 {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    }
+    
+    .bg-gradient-4 {
+      background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+    }
+
+    /* Estilos para la pantalla de sorpresa con fondo */
+    #sorpresa {
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transition: background-image 1s ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-pink-100 flex flex-col items-center justify-center min-h-screen">
+
+  <!-- Pantalla de contraseña -->
+  <div id="login" class="flex flex-col items-center justify-center bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full">
+    <h1 class="text-2xl font-bold text-pink-700 mb-4">🔐 Ingresa la contraseña</h1>
+    <input id="password" type="password" placeholder="Escribe aquí..." 
+           class="border border-gray-300 rounded-lg p-2 w-full text-center mb-4 focus:outline-none focus:ring-2 focus:ring-pink-400">
+    <p id="hint" class="text-sm text-gray-500 mb-2"></p>
+    <button onclick="verificarPassword()" 
+            class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-xl">
+      Entrar
+    </button>
+  </div>
+
+  <!-- Contenido desbloqueado -->
+  <div id="contenido" class="hidden flex flex-col items-center">
+    <h1 class="text-3xl font-bold mb-6 text-pink-700 animate-bounce">🌸 Toca una flor 🌸</h1>
+    <div class="flex space-x-6">
+      <button onclick="mostrarCupon('beso')" class="text-6xl hover:scale-110 transition">🌻</button>
+      <button onclick="mostrarCupon('hamburguesa')" class="text-6xl hover:scale-110 transition">🌹</button>
+       <button onclick="mostrarCupon('nuevo')" class="text-6xl hover:scale-110 transition">🌷</button>
+      <button onclick="mostrarCupon('sorpresa')" class="text-6xl hover:scale-110 transition">🌸</button>
+    </div>
+  </div>
+
+  <!-- Modal genérico -->
+  <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm w-full">
+      <h2 id="modal-title" class="text-xl font-bold mb-4 text-pink-700"></h2>
+      <p id="modal-text" class="text-gray-700 mb-6"></p>
+      <button id="modal-btn" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-xl" onclick="cerrarModal()">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- Modal de bienvenida -->
+  <div id="bienvenida" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm w-full animate-[fadeIn_0.4s_ease]">
+      <h2 class="text-2xl font-bold mb-4 text-pink-700">🎉 ¡Bienvenida Kerly! 🎉</h2>
+      <p class="text-gray-700 mb-6">Este jardín de flores es solo para ti y cada flor tiene su sorpresa. ¡Tócalas! 💕</p>
+      <button onclick="cerrarBienvenida()" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-xl">
+        Ver mis flores
+      </button>
+    </div>
+  </div>
+
+  <!-- Pantalla de sorpresa -->
+  <div id="sorpresa" class="hidden fixed inset-0 flex items-center justify-center flex-col">
+    <div class="bg-white bg-opacity-90 p-8 rounded-2xl shadow-xl max-w-2xl mx-4">
+      <h2 class="text-4xl font-bold text-pink-700 mb-4 text-center">🎁 Muy pronto será revelada 🎁</h2>
+      <p class="text-gray-800 mb-6 text-center">Estoy preparando algo muy especial para ti. ¡No puedo esperar a compartirlo! 💖</p>
+      <p class="text-gray-600 mb-8 text-center">Instrucciones para esperar la gran sorpresa.</p>
+      <div class="text-xl font-bold text-center leading-loose text-pink-700">
+        1. No te desesperes y no estes nerviosa.<br>
+        2. No te enojes jajajaja<br>
+        3. Ten mucha paciencia se que te va a hacer muy feliz y que te va a gustar mucho<br>
+      </div>
+      <div class="text-center mt-8">
+        <button onclick="cerrarSorpresa()" class="bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-xl">
+          Volver
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- IMÁGENES DE GITHUB ---
+    const backgrounds = [
+      "https://raw.githubusercontent.com/Mel3Vin/fotos/main/fondo1.jpg",
+      "https://raw.githubusercontent.com/Mel3Vin/fotos/main/fondo%202.jpg",
+      "https://raw.githubusercontent.com/Mel3Vin/fotos/main/fondo%203.jpg"
+    ];
+    let currentBackground = 0;
+
+    function cambiarFondo() {
+      const bodyElement = document.body;
+      const sorpresaElement = document.getElementById('sorpresa');
+      
+      bodyElement.style.backgroundImage = `url('${backgrounds[currentBackground]}')`;
+      sorpresaElement.style.backgroundImage = `url('${backgrounds[currentBackground]}')`;
+      
+      currentBackground = (currentBackground + 1) % backgrounds.length;
+    }
+    
+    // Inicializar fondos
+    cambiarFondo();
+    setInterval(cambiarFondo, 5000); // Cambia cada 5s
+
+    // --- LÓGICA DE CONTRASEÑA ---
+    let intentos = 0;
+    const passwordCorrecta = "06112024";
+
+    // Permitir enter para enviar
+    document.getElementById("password").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        verificarPassword();
+      }
+    });
+
+    function verificarPassword() {
+      const passInput = document.getElementById("password").value;
+      const hint = document.getElementById("hint");
+
+      if (passInput === passwordCorrecta) {
+        document.getElementById("login").classList.add("hidden");
+        document.getElementById("bienvenida").classList.remove("hidden");
+      } else {
+        intentos++;
+        if (intentos === 1) {
+          hint.textContent = "Pista: Es una fecha ❤️";
+        } else if (intentos === 2) {
+          hint.textContent = "Pista: Es el día que te cargué en mis brazos 💕";
+        } else {
+          hint.textContent = "Sigue intentando, sé que lo recordarás 😉";
+        }
+        // Limpiar el campo de contraseña
+        document.getElementById("password").value = "";
+      }
+    }
+
+    function cerrarBienvenida() {
+      document.getElementById("bienvenida").classList.add("hidden");
+      document.getElementById("contenido").classList.remove("hidden");
+    }
+
+    function mostrarCupon(tipo) {
+      const modal = document.getElementById('modal');
+      const title = document.getElementById('modal-title');
+      const text = document.getElementById('modal-text');
+      const btn = document.getElementById('modal-btn');
+
+      if (tipo === 'beso') {
+        title.textContent = "💋 Cupón válido";
+        text.textContent = "Este cumpón ya fue cambiado por un beso 😘";
+        btn.textContent = "Cerrar";
+        btn.onclick = cerrarModal;
+      } else if (tipo === 'hamburguesa') {
+        title.textContent = "🍔 Cupón válido";
+        text.textContent = "Este cupón ya fue cambiado por una hamburguesa 🍔 Espero la hayas disfrutado.";
+        btn.textContent = "Cerrar";
+        btn.onclick = cerrarModal;
+      } else if (tipo === 'nuevo') {
+        title.textContent = "🌷 Cupón Casa";
+        text.textContent = "Este cupón es válido para pasar un dia en mi casa 🏠";
+        btn.textContent = "Cerrar";
+        btn.onclick = cerrarModal;
+      } else if (tipo === 'sorpresa') {
+        title.textContent = "🎁 Cupón Sorpresa";
+        text.textContent = "Haz clic para ir a la sorpresa 👀";
+        btn.textContent = "Ir a sorpresa";
+        btn.onclick = () => {
+          modal.classList.add('hidden');
+          document.getElementById('sorpresa').classList.remove('hidden');
+        };
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function cerrarModal() {
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    function cerrarSorpresa() {
+      document.getElementById('sorpresa').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
