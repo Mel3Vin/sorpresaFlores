@@ -59,6 +59,7 @@
       <button onclick="mostrarCupon('beso')" class="text-6xl hover:scale-110 transition">🌻</button>
       <button onclick="mostrarCupon('hamburguesa')" class="text-6xl hover:scale-110 transition">🌹</button>
        <button onclick="mostrarCupon('nuevo')" class="text-6xl hover:scale-110 transition">🌷</button>
+       <button onclick="mostrarCupon('carta')" class="text-6xl hover:scale-110 transition">🌼</button>
       <button onclick="mostrarCupon('sorpresa')" class="text-6xl hover:scale-110 transition">🌸</button>
     </div>
   </div>
@@ -93,6 +94,9 @@
         1. No te desesperes y no estes nerviosa.<br>
         2. No te enojes jajajaja<br>
         3. Ten mucha paciencia se que te va a hacer muy feliz y que te va a gustar mucho<br>
+        4. 00/00/0000 00:00:00<br>
+        5. Muy pronto empezara la cuenta regresiva<br>
+        6. Te amo mucho mi amor ♥️<br>
       </div>
       <div class="text-center mt-8">
         <button onclick="cerrarSorpresa()" class="bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-xl">
@@ -128,7 +132,7 @@
 
     // --- LÓGICA DE CONTRASEÑA ---
     let intentos = 0;
-    const passwordCorrecta = "AMARILLO";
+    const passwordCorrecta = "Caballo";
 
     // Permitir enter para enviar
     document.getElementById("password").addEventListener("keypress", function(event) {
@@ -147,11 +151,11 @@
       } else {
         intentos++;
         if (intentos === 1) {
-          hint.textContent = "Pista: Es una palabra con la que me describes y esta escrita en mayusculas.";
+          hint.textContent = "Pista: Es un animal de cuatro patas.";
         } else if (intentos === 2) {
-          hint.textContent = "Pista: Tiene que ver con una descripcion mia ";
+          hint.textContent = "Pista: Me gustan de color blanco y azabaches  ";
         } else {
-          hint.textContent = "Sigue intentando, sé que lo recordarás 😉";
+          hint.textContent = "Sigue intentando, sé que puedes adivinar";
         }
         // Limpiar el campo de contraseña
         document.getElementById("password").value = "";
@@ -184,6 +188,11 @@
         text.textContent = "Este cupón es válido para pasar un dia en mi casa 🏠";
         btn.textContent = "Cerrar";
         btn.onclick = cerrarModal;
+      } else if (tipo === 'carta') {
+        title.textContent = "🌼 Cupón Carta" ;
+        text.textContent = "Este cupón es válido para recibir una carta escrita a mano 📝";
+        btn.textContent = "Cerrar";
+        btn.onclick = cerrarModal
       } else if (tipo === 'sorpresa') {
         title.textContent = "🎁 Cupón Sorpresa";
         text.textContent = "Haz clic para ir a la sorpresa 👀";
@@ -208,6 +217,7 @@
 </body>
 
 </html>
+
 
 
 
