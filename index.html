@@ -58,8 +58,9 @@
     <div class="flex space-x-6">
       <button onclick="mostrarCupon('beso')" class="text-6xl hover:scale-110 transition">🌻</button>
       <button onclick="mostrarCupon('hamburguesa')" class="text-6xl hover:scale-110 transition">🌹</button>
-       <button onclick="mostrarCupon('nuevo')" class="text-6xl hover:scale-110 transition">🌷</button>
-       <button onclick="mostrarCupon('carta')" class="text-6xl hover:scale-110 transition">🌼</button>
+      <button onclick="mostrarCupon('nuevo')" class="text-6xl hover:scale-110 transition">🌷</button>
+      <button onclick="mostrarCupon('carta')" class="text-6xl hover:scale-110 transition">🌼</button>
+      <button onclick="mostrarCupon('Audio')" class="text-6xl hover:scale-110 transition">🌺</button>
       <button onclick="mostrarCupon('sorpresa')" class="text-6xl hover:scale-110 transition">🌸</button>
     </div>
   </div>
@@ -69,6 +70,15 @@
     <div class="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm w-full">
       <h2 id="modal-title" class="text-xl font-bold mb-4 text-pink-700"></h2>
       <p id="modal-text" class="text-gray-700 mb-6"></p>
+      
+      <!-- Reproductor de audio -->
+      <div id="audio-container" class="hidden mb-6">
+        <audio id="audio-player" controls class="w-full rounded-lg">
+          <source id="audio-source" src="" type="audio/mpeg">
+          Tu navegador no soporta el elemento de audio.
+        </audio>
+      </div>
+      
       <button id="modal-btn" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-xl" onclick="cerrarModal()">Cerrar</button>
     </div>
   </div>
@@ -132,7 +142,7 @@
 
     // --- LÓGICA DE CONTRASEÑA ---
     let intentos = 0;
-    const passwordCorrecta = "Caballo";
+    const passwordCorrecta = "208";
 
     // Permitir enter para enviar
     document.getElementById("password").addEventListener("keypress", function(event) {
@@ -151,9 +161,9 @@
       } else {
         intentos++;
         if (intentos === 1) {
-          hint.textContent = "Pista: Es un animal de cuatro patas.";
+          hint.textContent = "Pista: Es el numero de una aula";
         } else if (intentos === 2) {
-          hint.textContent = "Pista: Me gustan de color blanco y azabaches  ";
+          hint.textContent = "Pista: Es donde paso algo por primera ves  ";
         } else {
           hint.textContent = "Sigue intentando, sé que puedes adivinar";
         }
@@ -172,6 +182,14 @@
       const title = document.getElementById('modal-title');
       const text = document.getElementById('modal-text');
       const btn = document.getElementById('modal-btn');
+      const audioContainer = document.getElementById('audio-container');
+      const audioSource = document.getElementById('audio-source');
+      const audioPlayer = document.getElementById('audio-player');
+
+      // Ocultar audio por defecto y pausar si estaba reproduciéndose
+      audioContainer.classList.add('hidden');
+      audioPlayer.pause();
+      audioPlayer.currentTime = 0;
 
       if (tipo === 'beso') {
         title.textContent = "💋 Cupón inválido";
@@ -185,14 +203,24 @@
         btn.onclick = cerrarModal;
       } else if (tipo === 'nuevo') {
         title.textContent = "🌷 Cupón Casa";
-        text.textContent = "Este cupón ya fue cangeado espero la hayas pasado bien";
+        text.textContent = "Este cupón es válido para pasar un dia en mi casa 🏠";
         btn.textContent = "Cerrar";
         btn.onclick = cerrarModal;
       } else if (tipo === 'carta') {
         title.textContent = "🌼 Cupón Carta" ;
-        text.textContent = "Este cupón no es valido carta ya entregada espero te haya gustado";
+        text.textContent = "Este cupón es no es válido la carta fue entregada 📝";
         btn.textContent = "Cerrar";
-        btn.onclick = cerrarModal
+        btn.onclick = cerrarModal;
+      } else if (tipo === 'Audio') {
+        title.textContent = "🌺 Cupón Poema" ;
+        text.textContent = "Este cupón es válido para poder escuchar un poema que escribí para ti 🎤";
+        // Mostrar reproductor de audio
+        audioContainer.classList.remove('hidden');
+        audioSource.src = "https://raw.githubusercontent.com/Mel3Vin/fotos/main/Audio1.mp3";
+        audioPlayer.load();
+        
+        btn.textContent = "Cerrar";
+        btn.onclick = cerrarModal;
       } else if (tipo === 'sorpresa') {
         title.textContent = "🎁 Cupón Sorpresa";
         text.textContent = "Haz clic para ir a la sorpresa 👀";
@@ -207,6 +235,9 @@
     }
 
     function cerrarModal() {
+      const audioPlayer = document.getElementById('audio-player');
+      audioPlayer.pause();
+      audioPlayer.currentTime = 0;
       document.getElementById('modal').classList.add('hidden');
     }
 
@@ -215,11 +246,4 @@
     }
   </script>
 </body>
-
 </html>
-
-
-
-
-
-
