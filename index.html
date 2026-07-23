@@ -837,4 +837,724 @@
       <div class="photo-preview-wrap">
         <img id="photoPreview" alt="Comprobante">
         <label class="photo-capture-btn" for="transferPhotoInput" id="photoCaptureLabel">📷 Tomar foto / Adjuntar</label>
-        <input type="file" id="transferPhotoInput" accept="image/*" class="visually-hidd
+        <input type="file" id="transferPhotoInput" accept="image/*" class="visually-hiddhidden-file">
+      </div>
+      <div class="modal-actions">
+        <button class="cancel" id="photoBack">Atrás</button>
+        <button class="confirm" id="photoConfirm" disabled>Confirmar pago</button>
+      </div>
+    </div>
+
+    <!-- Paso 3: pago exitoso + imprimir -->
+    <div id="paymentStepSuccess" style="display:none;">
+      <h3>✅ Pago exitoso</h3>
+      <p class="success-msg" id="successMsg"></p>
+      <button class="btn-print-ticket" id="btnPrintTicket">🖨 Reimprimir ticket (si se perdió)</button>
+      <div class="modal-actions">
+        <button class="confirm" id="btnDonePayment" style="width:100%;">Listo, cerrar mesa</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Flavor Modal -->
+<div class="modal-overlay" id="flavorModal">
+  <div class="modal-box">
+    <h3>🍨 Elige el sabor</h3>
+    <div class="flavor-grid" id="flavorGrid"></div>
+    <div class="modal-actions">
+      <button class="cancel" id="flavorCancel">Cancelar</button>
+      <button class="confirm" id="flavorConfirm">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Ticket imprimible (oculto en pantalla, visible solo al imprimir) -->
+<div id="printTicket"></div>
+
+
+<script>
+/* ================= DATA ================= */
+const MENU = {
+  "Bebidas 🥤": [
+    {name:"Jugos", price:1.00, flavors:1, flavorType:"fruta"},
+    {name:"Coca-Cola", price:1.00},
+    {name:"Batidos", price:1.25, flavors:1, flavorType:"fruta"},
+    {name:"Agua", price:0.60},
+    {name:"Café chico", price:0.50},
+    {name:"Café grande", price:0.75},
+  ],
+  "Extras ✨": [
+    {name:"Helado", price:1.00, flavors:1, flavorType:"helado"},
+    {name:"Crema Chantilly", price:1.00},
+  ],
+  "Empanadas Chilenas 🥟": [
+    {name:"Empanada de Queso", price:0.75},
+    {name:"Empanada de Carne", price:1.00},
+    {name:"Empanada de Pollo", price:1.00},
+    {name:"Empanada Texana", price:1.00},
+  ],
+  "Ensaladas de Frutas 🍓": [
+    {name:"Ensalada con crema", price:2.50},
+    {name:"Ensalada con helado", price:3.50, flavors:1, flavorType:"helado"},
+    {name:"Ensalada Light", price:2.50},
+    {name:"Ensalada Natural", price:1.50},
+    {name:"Copa malagueña", price:5.00, flavors:2, flavorType:"helado"},
+    {name:"Ensalada con crema junior", price:1.50},
+    {name:"Ensalada con helado junior", price:2.50, flavors:1, flavorType:"helado"},
+  ],
+  "Postres 🍰": [
+    {name:"Banana Split", price:3.50, flavors:3, flavorType:"helado"},
+    {name:"Mini Banana", price:2.00, flavors:1, flavorType:"helado"},
+    {name:"Copa de Helado", price:3.50, flavors:3, flavorType:"helado"},
+    {name:"Helado con cola", price:2.00, flavors:1, flavorType:"helado"},
+    {name:"Helado personal", price:1.25, flavors:1, flavorType:"helado"},
+    {name:"Gelatina con helado", price:2.50, flavors:1, flavorType:"helado"},
+    {name:"Gelatina junior", price:1.50, flavors:1, flavorType:"helado"},
+    {name:"Frutillas con chantilly", price:2.50},
+  ],
+  "Bocatas / Sánduches 🥪": [
+    {name:"Mixto (jamón, queso, salami, pepperoni)", price:3.00},
+    {name:"Pernil", price:3.00},
+    {name:"Jamón", price:2.50},
+    {name:"Pepperoni", price:2.50},
+    {name:"Salami", price:2.50},
+    {name:"Queso", price:2.50},
+    {name:"Pollo", price:3.00},
+    {name:"Sánduche de pollo", price:1.50},
+  ],
+  "Tostadas 🍞": [
+    {name:"Tostada de Queso", price:1.25},
+    {name:"Tostada de Jamón", price:1.50},
+    {name:"Tostada Mixta", price:1.75},
+  ],
+};
+
+const ICE_CREAM_FLAVORS = ["Café","Chocolate","Frutilla","Vainilla","Oreo","Ron Pasas","Mora","Coco Manjar"];
+const FRUIT_FLAVORS = ["Mora","Guineo","Maracuyá","Frutilla"];
+
+const TABLES = {
+  sala: [
+    {id:"S1", name:"Mesa Sala 1", icon:"🪑"},
+    {id:"S2", name:"Mesa Sala 2", icon:"🪑"},
+    {id:"S3", name:"Mesa Sala 3", icon:"🪑"},
+  ],
+  fuera: [
+    {id:"F1", name:"Mesa Fuera 1", icon:"🌳"},
+    {id:"F2", name:"Mesa Fuera 2", icon:"🌳"},
+    {id:"F3", name:"Mesa Fuera 3", icon:"🌳"},
+    {id:"F4", name:"Mesa Fuera 4", icon:"🌳"},
+  ],
+  barra: [
+    {id:"B1", name:"Barra 1", icon:"🍹"},
+    {id:"B2", name:"Barra 2", icon:"🍹"},
+    {id:"B3", name:"Barra 3", icon:"🍹"},
+  ],
+};
+
+const STORAGE_KEY = "fruteriaMalagaCarts";
+const HISTORY_KEY = "fruteriaMalagaSalesHistory";
+
+/* ================= STATE ================= */
+let carts = loadCarts();
+let currentTable = null;
+let currentCategory = Object.keys(MENU)[0];
+let pendingFlavorProduct = null;
+let selectedFlavor = null;
+
+function loadCarts(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  }catch(e){ return {}; }
+}
+function saveCarts(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(carts));
+}
+function getCart(tableId){
+  if(!carts[tableId]) carts[tableId] = [];
+  return carts[tableId];
+}
+function cartTotal(tableId){
+  return getCart(tableId).reduce((sum,i)=> sum + i.price*i.qty, 0);
+}
+
+/* ================= RENDER TABLES ================= */
+function renderTables(){
+  renderTableGroup("salaGrid", TABLES.sala);
+  renderTableGroup("fueraGrid", TABLES.fuera);
+  renderTableGroup("barraGrid", TABLES.barra);
+}
+function renderTableGroup(containerId, list){
+  const el = document.getElementById(containerId);
+  el.innerHTML = "";
+  list.forEach(t=>{
+    const cart = getCart(t.id);
+    const occupied = cart.length > 0;
+    const card = document.createElement("div");
+    card.className = "table-card" + (occupied ? " occupied-border" : "");
+    card.innerHTML = `
+      <div class="icon">${t.icon}</div>
+      <div class="name">${t.name}</div>
+      <span class="status ${occupied ? "ocupada":"libre"}">${occupied ? "Ocupada":"Libre"}</span>
+      ${occupied ? `<div class="total-mini">$${cartTotal(t.id).toFixed(2)}</div>` : ""}
+    `;
+    card.addEventListener("click", ()=> openTable(t.id, t.name));
+    el.appendChild(card);
+  });
+}
+
+/* ================= VIEW NAVIGATION ================= */
+function showView(view){
+  document.getElementById("tablesView").style.display = view === "tables" ? "block" : "none";
+  document.getElementById("posView").style.display = view === "pos" ? "block" : "none";
+  document.getElementById("historyView").style.display = view === "history" ? "block" : "none";
+  document.getElementById("btnBack").classList.toggle("show", view === "pos");
+  document.getElementById("btnHistory").classList.toggle("active", view === "history");
+  document.getElementById("btnHistory").textContent = view === "history" ? "🪑 Ver mesas" : "📜 Historial";
+}
+
+/* ================= POS VIEW ================= */
+function openTable(id, name){
+  currentTable = id;
+  showView("pos");
+  document.getElementById("posTableName").textContent = "📍 " + name;
+  renderCategoryTabs();
+  renderProducts();
+  renderCart();
+}
+function closeTable(){
+  currentTable = null;
+  showView("tables");
+  renderTables();
+}
+document.getElementById("btnBack").addEventListener("click", closeTable);
+
+/* ================= HISTORY VIEW ================= */
+document.getElementById("btnHistory").addEventListener("click", ()=>{
+  const isHistory = document.getElementById("historyView").style.display === "block";
+  if(isHistory){
+    showView("tables");
+    renderTables();
+  }else{
+    currentTable = null;
+    showView("history");
+    renderHistory();
+  }
+});
+document.getElementById("btnClearHistory").addEventListener("click", ()=>{
+  const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  if(history.length === 0) return;
+  if(confirm("¿Borrar todo el historial de ventas? Esta acción no se puede deshacer.")){
+    localStorage.setItem(HISTORY_KEY, "[]");
+    renderHistory();
+  }
+});
+function renderHistory(){
+  const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  const sorted = [...history].reverse(); // más reciente primero
+  const summaryEl = document.getElementById("historySummary");
+  const listEl = document.getElementById("historyList");
+
+  const grandTotal = history.reduce((s,h)=> s + h.total, 0);
+  summaryEl.innerHTML = `
+    <div class="stat">
+      <span class="label">Ventas registradas</span>
+      <span class="value">${history.length}</span>
+    </div>
+    <div class="stat">
+      <span class="label">Total acumulado</span>
+      <span class="value">$${grandTotal.toFixed(2)}</span>
+    </div>
+  `;
+
+  if(sorted.length === 0){
+    listEl.innerHTML = `<div class="history-empty">Aún no hay ventas registradas.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = "";
+  sorted.forEach(sale=>{
+    const date = new Date(sale.date);
+    const fecha = date.toLocaleDateString("es-EC", {day:"2-digit", month:"short", year:"numeric"});
+    const hora = date.toLocaleTimeString("es-EC", {hour:"2-digit", minute:"2-digit"});
+    const tableName = tableNameById(sale.table);
+
+    const itemsHtml = sale.items.map(i => `
+      <div class="history-item-row">
+        <span class="hname">${i.qty}x ${i.name}${i.note ? ` <span class="hnote">(${i.note})</span>` : ""}</span>
+        <span>$${(i.price*i.qty).toFixed(2)}</span>
+      </div>
+    `).join("");
+
+    const card = document.createElement("div");
+    card.className = "history-card";
+    const methodClass = sale.paymentMethod === "Transferencia" ? "transferencia" : "efectivo";
+    const methodIcon = sale.paymentMethod === "Transferencia" ? "🏦" : "💵";
+    card.innerHTML = `
+      <div class="history-card-top">
+        <div>
+          <div class="history-card-table">${tableName}</div>
+          <div class="history-card-date">${fecha} · ${hora}</div>
+          ${sale.paymentMethod ? `<span class="payment-badge ${methodClass}">${methodIcon} ${sale.paymentMethod}</span>` : ""}
+        </div>
+        <div class="history-card-total">$${sale.total.toFixed(2)}</div>
+      </div>
+      <div class="history-items">${itemsHtml}</div>
+      ${sale.photo ? `<img src="${sale.photo}" class="history-photo" alt="Comprobante de transferencia">` : ""}
+      <button class="history-reprint">🖨 Reimprimir ticket</button>
+    `;
+    if(sale.photo){
+      card.querySelector(".history-photo").addEventListener("click", ()=>{
+        window.open(sale.photo, "_blank");
+      });
+    }
+    card.querySelector(".history-reprint").addEventListener("click", ()=>{
+      printTicket({...sale, tableName});
+    });
+    listEl.appendChild(card);
+  });
+}
+function tableNameById(id){
+  const all = [...TABLES.sala, ...TABLES.fuera, ...TABLES.barra];
+  const found = all.find(t => t.id === id);
+  return found ? found.name : id;
+}
+
+function renderCategoryTabs(){
+  const el = document.getElementById("categoryTabs");
+  el.innerHTML = "";
+  Object.keys(MENU).forEach(cat=>{
+    const btn = document.createElement("button");
+    btn.textContent = cat;
+    if(cat === currentCategory) btn.classList.add("active");
+    btn.addEventListener("click", ()=>{
+      currentCategory = cat;
+      renderCategoryTabs();
+      renderProducts();
+    });
+    el.appendChild(btn);
+  });
+}
+
+function renderProducts(){
+  const el = document.getElementById("productsGrid");
+  el.innerHTML = "";
+  MENU[currentCategory].forEach(p=>{
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.innerHTML = `
+      <div class="pname">${p.name}</div>
+      <div class="pprice">$${p.price.toFixed(2)}</div>
+    `;
+    card.addEventListener("click", ()=>{
+      if(p.flavors){
+        openFlavorModal(p);
+      }else{
+        addToCart(p, null);
+      }
+    });
+    el.appendChild(card);
+  });
+}
+
+/* ================= CART LOGIC ================= */
+function addToCart(product, note){
+  const cart = getCart(currentTable);
+  const existing = cart.find(i => i.name === product.name && i.note === note);
+  if(existing){
+    existing.qty += 1;
+  }else{
+    cart.push({name:product.name, price:product.price, qty:1, note:note});
+  }
+  saveCarts();
+  renderCart();
+  showToast(`${product.name} agregado ✅`);
+}
+function changeQty(index, delta){
+  const cart = getCart(currentTable);
+  cart[index].qty += delta;
+  if(cart[index].qty <= 0){
+    cart.splice(index,1);
+  }
+  saveCarts();
+  renderCart();
+}
+function removeItem(index){
+  const cart = getCart(currentTable);
+  cart.splice(index,1);
+  saveCarts();
+  renderCart();
+}
+function clearCart(){
+  if(!currentTable) return;
+  if(getCart(currentTable).length === 0) return;
+  if(confirm("¿Vaciar el carrito de esta mesa?")){
+    carts[currentTable] = [];
+    saveCarts();
+    renderCart();
+  }
+}
+document.getElementById("btnClearCart").addEventListener("click", clearCart);
+
+document.getElementById("btnSaveOrder").addEventListener("click", saveOrderAndReturn);
+function saveOrderAndReturn(){
+  const cart = getCart(currentTable);
+  if(cart.length === 0) return;
+  // El carrito ya se guarda automáticamente en localStorage con cada cambio.
+  saveCarts();
+
+  // Imprime la comanda para cocina/preparación, ya con el total incluido.
+  // Este mismo papel se reutiliza al final para entregárselo al cliente cuando pague.
+  const orderTicket = {
+    table: currentTable,
+    tableName: tableNameById(currentTable),
+    items: cart,
+    total: cartTotal(currentTable),
+    date: new Date().toISOString(),
+    paymentMethod: null,
+    photo: null
+  };
+  printTicket(orderTicket);
+
+  showToast("Pedido guardado 💾 · Mesa ocupada · Imprimiendo comanda...");
+  setTimeout(closeTable, 700);
+}
+
+function renderCart(){
+  const cart = getCart(currentTable);
+  const el = document.getElementById("cartItems");
+  el.innerHTML = "";
+  if(cart.length === 0){
+    el.innerHTML = `<div class="cart-empty">El carrito está vacío.<br>Selecciona productos del menú.</div>`;
+  }else{
+    cart.forEach((item, idx)=>{
+      const div = document.createElement("div");
+      div.className = "cart-item";
+      div.innerHTML = `
+        <div class="cart-item-top">
+          <div>
+            <div class="cart-item-name">${item.name}</div>
+            ${item.note ? `<div class="cart-item-note">Sabor: ${item.note}</div>` : ""}
+          </div>
+          <button class="cart-item-remove" title="Eliminar">✕</button>
+        </div>
+        <div class="cart-item-bottom">
+          <div class="qty-control">
+            <button class="minus">−</button>
+            <span>${item.qty}</span>
+            <button class="plus">+</button>
+          </div>
+          <div class="cart-item-subtotal">$${(item.price*item.qty).toFixed(2)}</div>
+        </div>
+      `;
+      div.querySelector(".minus").addEventListener("click", ()=>changeQty(idx,-1));
+      div.querySelector(".plus").addEventListener("click", ()=>changeQty(idx,1));
+      div.querySelector(".cart-item-remove").addEventListener("click", ()=>removeItem(idx));
+      el.appendChild(div);
+    });
+  }
+  const total = cartTotal(currentTable);
+  document.getElementById("cartTotal").textContent = "$" + total.toFixed(2);
+  document.getElementById("btnFinalize").disabled = cart.length === 0;
+  document.getElementById("btnSaveOrder").disabled = cart.length === 0;
+}
+
+/* ================= COBRAR / MÉTODO DE PAGO ================= */
+let capturedPhotoDataUrl = null;
+let lastCompletedSale = null;
+
+document.getElementById("btnFinalize").addEventListener("click", openPaymentModal);
+
+function openPaymentModal(){
+  const cart = getCart(currentTable);
+  if(cart.length === 0) return;
+  capturedPhotoDataUrl = null;
+  const img = document.getElementById("photoPreview");
+  img.style.display = "none";
+  img.src = "";
+  document.getElementById("transferPhotoInput").value = "";
+  document.getElementById("photoConfirm").disabled = true;
+  showPaymentStep("method");
+  document.getElementById("paymentModal").classList.add("show");
+}
+function closePaymentModal(){
+  document.getElementById("paymentModal").classList.remove("show");
+}
+function showPaymentStep(step){
+  document.getElementById("paymentStepMethod").style.display = step === "method" ? "block" : "none";
+  document.getElementById("paymentStepPhoto").style.display = step === "photo" ? "block" : "none";
+  document.getElementById("paymentStepSuccess").style.display = step === "success" ? "block" : "none";
+}
+document.getElementById("paymentCancel").addEventListener("click", closePaymentModal);
+document.getElementById("photoBack").addEventListener("click", ()=> showPaymentStep("method"));
+
+document.getElementById("payCash").addEventListener("click", ()=>{
+  const total = cartTotal(currentTable);
+  if(!confirm(`Confirmar pago en EFECTIVO por $${total.toFixed(2)}?`)) return;
+  completeSale("Efectivo", null);
+});
+document.getElementById("payTransfer").addEventListener("click", ()=>{
+  showPaymentStep("photo");
+});
+
+// Respaldo: algunos navegadores/webviews no disparan el input al hacer clic
+// en el <label for="..."> asociado, así que forzamos el click por JS también.
+document.getElementById("photoCaptureLabel").addEventListener("click", (e)=>{
+  e.preventDefault();
+  document.getElementById("transferPhotoInput").click();
+});
+
+document.getElementById("transferPhotoInput").addEventListener("change", (e)=>{
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  compressImage(file, (dataUrl)=>{
+    capturedPhotoDataUrl = dataUrl;
+    const img = document.getElementById("photoPreview");
+    img.src = dataUrl;
+    img.style.display = "block";
+    document.getElementById("photoConfirm").disabled = false;
+    showToast("Foto cargada 📷");
+  }, (err)=>{
+    console.error("Error al procesar la foto:", err);
+    showToast("No se pudo procesar la foto ⚠️ Intenta de nuevo");
+  });
+});
+
+document.getElementById("photoConfirm").addEventListener("click", ()=>{
+  if(!capturedPhotoDataUrl) return;
+  completeSale("Transferencia", capturedPhotoDataUrl);
+});
+
+function compressImage(file, callback, onError){
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const img = new Image();
+    img.onload = function(){
+      try{
+        const maxW = 900;
+        const scale = Math.min(1, maxW / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale) || img.width;
+        canvas.height = Math.round(img.height * scale) || img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        callback(canvas.toDataURL("image/jpeg", 0.75));
+      }catch(err){
+        if(onError) onError(err);
+      }
+    };
+    img.onerror = function(err){
+      if(onError) onError(err);
+    };
+    img.src = ev.target.result;
+  };
+  reader.onerror = function(err){
+    if(onError) onError(err);
+  };
+  reader.readAsDataURL(file);
+}
+
+function completeSale(method, photoDataUrl){
+  const cart = getCart(currentTable);
+  const total = cartTotal(currentTable);
+  const tableName = tableNameById(currentTable);
+
+  const saleRecord = {
+    table: currentTable,
+    tableName: tableName,
+    items: cart,
+    total: total,
+    date: new Date().toISOString(),
+    paymentMethod: method,
+    photo: photoDataUrl || null
+  };
+
+  const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  history.push(saleRecord);
+  try{
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  }catch(e){
+    // Si el almacenamiento se llena por el tamaño de la foto, se guarda sin ella
+    saleRecord.photo = null;
+    history[history.length - 1] = saleRecord;
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    showToast("Venta guardada, pero la foto era muy pesada para guardarse ⚠️");
+  }
+
+  // Guardar la foto también en la galería del dispositivo/descargas
+  if(photoDataUrl){
+    saveImageToGallery(photoDataUrl, `comprobante_${currentTable}_${Date.now()}.jpg`);
+  }
+
+  carts[currentTable] = [];
+  saveCarts();
+  renderCart();
+
+  lastCompletedSale = saleRecord;
+  document.getElementById("successMsg").textContent =
+    `${tableName} · ${method} · Total $${total.toFixed(2)}`;
+  showPaymentStep("success");
+}
+
+document.getElementById("btnPrintTicket").addEventListener("click", ()=>{
+  if(lastCompletedSale) printTicket(lastCompletedSale);
+});
+document.getElementById("btnDonePayment").addEventListener("click", ()=>{
+  closePaymentModal();
+  showToast(`Pago exitoso ✅ · Total $${lastCompletedSale ? lastCompletedSale.total.toFixed(2) : ""}`);
+  closeTable();
+});
+
+function saveImageToGallery(dataUrl, filename){
+  try{
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }catch(err){
+    console.error("No se pudo descargar automáticamente la foto:", err);
+    // Respaldo: abrir la imagen en una pestaña nueva para que el usuario
+    // pueda guardarla manualmente (mantener presionado > Guardar imagen).
+    try{
+      window.open(dataUrl, "_blank");
+      showToast("Mantén presionada la foto para guardarla en tu galería 📷");
+    }catch(err2){
+      console.error("Tampoco se pudo abrir la foto en pestaña nueva:", err2);
+    }
+  }
+}
+
+/* ================= TICKET IMPRIMIBLE ================= */
+function buildTicketHtml(sale){
+  const date = new Date(sale.date);
+  const fecha = date.toLocaleDateString("es-EC", {day:"2-digit", month:"2-digit", year:"numeric"});
+  const hora = date.toLocaleTimeString("es-EC", {hour:"2-digit", minute:"2-digit"});
+  const tableName = sale.tableName || tableNameById(sale.table);
+  const isPaid = !!sale.paymentMethod;
+
+  const itemsHtml = sale.items.map(i => `
+    <div class="t-row t-item">
+      <span class="t-item-name">${i.qty}x ${i.name}</span>
+      <span>$${(i.price*i.qty).toFixed(2)}</span>
+    </div>
+    ${i.note ? `<div class="t-note">Sabor: ${i.note}</div>` : ""}
+  `).join("");
+
+  return `
+    <div class="ticket-content">
+      <div class="t-center t-title">Frutería Málaga</div>
+      <div class="t-center t-small">El Carmen, Manabí</div>
+      <div class="t-sep"></div>
+      <div class="t-row t-small"><span>${fecha}</span><span>${hora}</span></div>
+      <div class="t-row t-small"><span>Mesa:</span><span>${tableName}</span></div>
+      <div class="t-sep"></div>
+      <div class="t-center t-order-label">${isPaid ? "PEDIDO" : "PEDIDO PARA PREPARAR"}</div>
+      <div class="t-sep"></div>
+      ${itemsHtml}
+      <div class="t-sep"></div>
+      <div class="t-row t-total"><span>TOTAL</span><span>$${sale.total.toFixed(2)}</span></div>
+      <div class="t-row t-small">
+        <span>Pago:</span>
+        <span>${isPaid ? sale.paymentMethod : "PENDIENTE"}</span>
+      </div>
+      <div class="t-sep"></div>
+      <div class="t-center t-small">
+        ${isPaid ? "¡Gracias por su compra!" : "Conservar y entregar al cliente al pagar"}
+      </div>
+    </div>
+  `;
+}
+function printTicket(sale){
+  document.getElementById("printTicket").innerHTML = buildTicketHtml(sale);
+  window.print();
+}
+
+/* ================= FLAVOR MODAL ================= */
+function openFlavorModal(product){
+  pendingFlavorProduct = product;
+  selectedFlavor = []; // array de sabores elegidos
+  const max = product.flavors || 1;
+  const isFruit = product.flavorType === "fruta";
+  const flavorList = isFruit ? FRUIT_FLAVORS : ICE_CREAM_FLAVORS;
+  const grid = document.getElementById("flavorGrid");
+  grid.innerHTML = "";
+
+  const label = isFruit ? "🍹 Elige el sabor" : "🍨 Elige el sabor";
+  document.querySelector("#flavorModal h3").textContent =
+    max === 1 ? label : `${isFruit ? "🍹" : "🍨"} Elige ${max} sabores`;
+
+  flavorList.forEach(f=>{
+    const btn = document.createElement("button");
+    btn.textContent = f;
+    btn.addEventListener("click", ()=>{
+      const idx = selectedFlavor.indexOf(f);
+      if(idx > -1){
+        // deseleccionar
+        selectedFlavor.splice(idx,1);
+        btn.classList.remove("selected");
+      }else{
+        if(max === 1){
+          // selección única: reemplaza la anterior
+          selectedFlavor = [f];
+          grid.querySelectorAll("button").forEach(b=>b.classList.remove("selected"));
+          btn.classList.add("selected");
+        }else{
+          if(selectedFlavor.length >= max){
+            showToast(`Máximo ${max} sabores para ${product.name}`);
+            return;
+          }
+          selectedFlavor.push(f);
+          btn.classList.add("selected");
+        }
+      }
+      updateFlavorConfirmState(max);
+    });
+    grid.appendChild(btn);
+  });
+  updateFlavorConfirmState(max);
+  document.getElementById("flavorModal").classList.add("show");
+}
+function updateFlavorConfirmState(max){
+  const confirmBtn = document.getElementById("flavorConfirm");
+  const count = selectedFlavor.length;
+  const complete = max === 1 ? count === 1 : count === max;
+  confirmBtn.disabled = !complete;
+  confirmBtn.style.opacity = complete ? 1 : .5;
+  confirmBtn.textContent = max === 1
+    ? "Agregar"
+    : `Agregar (${count}/${max})`;
+}
+document.getElementById("flavorCancel").addEventListener("click", ()=>{
+  document.getElementById("flavorModal").classList.remove("show");
+  pendingFlavorProduct = null;
+});
+document.getElementById("flavorConfirm").addEventListener("click", ()=>{
+  if(!pendingFlavorProduct) return;
+  const max = pendingFlavorProduct.flavors || 1;
+  if(selectedFlavor.length !== max) return;
+  addToCart(pendingFlavorProduct, selectedFlavor.join(", "));
+  document.getElementById("flavorModal").classList.remove("show");
+  pendingFlavorProduct = null;
+});
+
+/* ================= TOAST ================= */
+let toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove("show"), 1800);
+}
+
+/* ================= INIT ================= */
+renderTables();
+</script>
+</body>
+</html>
