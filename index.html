@@ -209,6 +209,46 @@
     padding:22px 16px 60px;
   }
 
+  .btn-takeout{
+    width:100%;
+    background:linear-gradient(120deg,var(--verde),var(--verde-dark));
+    color:#fff;
+    border:none;
+    padding:16px;
+    border-radius:var(--radius);
+    font-weight:800;
+    font-size:1.05rem;
+    box-shadow:var(--shadow);
+    cursor:pointer;
+    margin-bottom:22px;
+    transition:transform .15s ease;
+  }
+  .btn-takeout:hover{transform:translateY(-2px);}
+
+  .takeout-banner{
+    width:100%;
+    background:#fff4e0;
+    border:2px solid #ffd699;
+    color:#8a5a00;
+    font-weight:600;
+    font-size:.82rem;
+    padding:10px 14px;
+    border-radius:12px;
+    margin-top:8px;
+  }
+  .takeout-tag{
+    display:inline-block;
+    font-size:.68rem;
+    font-weight:700;
+    color:#8a5a00;
+    background:#fff0d1;
+    border-radius:999px;
+    padding:2px 7px;
+    margin-left:4px;
+    vertical-align:middle;
+  }
+  .cart-item-note.takeout-note{color:#8a5a00; font-weight:600;}
+
   /* ---------- TABLE SELECTION VIEW ---------- */
   .section-title{
     font-size:1.2rem;
@@ -458,7 +498,7 @@
     font-size:1rem;
     cursor:pointer;
     transition:.2s;
-  }
+}
   .btn-finalize:hover{transform:translateY(-2px); box-shadow:0 8px 18px rgba(63,163,77,.35);}
   .btn-finalize:disabled{
     opacity:.5;
@@ -762,6 +802,8 @@
 <main>
   <!-- TABLE SELECTION VIEW -->
   <div id="tablesView">
+    <button class="btn-takeout" id="btnTakeout">🥡 Pedido para llevar</button>
+
     <h2 class="section-title">🪑 Sala</h2>
     <div class="tables-grid" id="salaGrid"></div>
 
@@ -776,6 +818,7 @@
   <div id="posView">
     <div class="pos-header">
       <h2 id="posTableName">Mesa</h2>
+      <div class="takeout-banner" id="takeoutBanner" style="display:none;">🥡 Para llevar: se suma $0.25 automático en jugos, batidos, ensaladas de frutas y postres</div>
     </div>
     <div class="pos-layout">
       <div class="menu-panel">
@@ -936,12 +979,33 @@ const MENU = {
 const ICE_CREAM_FLAVORS = ["Café","Chocolate","Frutilla","Vainilla","Oreo","Ron Pasas","Mora","Coco Manjar"];
 const FRUIT_FLAVORS = ["Mora","Guineo","Maracuyá","Frutilla"];
 
+/* ================= PARA LLEVAR (RECARGO) ================= */
+const TAKEOUT_ID = "TAKEOUT";
+const TAKEOUT_SURCHARGE = 0.25;
+const TAKEOUT_SURCHARGE_CATEGORIES = ["Ensaladas de Frutas 🍓", "Postres 🍰"];
+const TAKEOUT_SURCHARGE_NAMES = ["Jugos", "Batidos"];
+
+function findCategoryOf(product){
+  for(const cat in MENU){
+    if(MENU[cat].includes(product)) return cat;
+  }
+  return null;
+}
+function getTakeoutSurcharge(product){
+  if(currentTable !== TAKEOUT_ID) return 0;
+  const cat = findCategoryOf(product);
+  if(TAKEOUT_SURCHARGE_CATEGORIES.includes(cat)) return TAKEOUT_SURCHARGE;
+  if(TAKEOUT_SURCHARGE_NAMES.includes(product.name)) return TAKEOUT_SURCHARGE;
+  return 0;
+}
+
+
 const TABLES = {
   sala: [
     {id:"S1", name:"Mesa Sala 1", icon:"🪑"},
     {id:"S2", name:"Mesa Sala 2", icon:"🪑"},
     {id:"S3", name:"Mesa Sala 3", icon:"🪑"},
-    {id:"S4", name:"Sala dentro", icon:"🪑"},
+    {id:"S4", name:"Mesa Sala 4", icon:"🪑"},
   ],
   fuera: [
     {id:"F1", name:"Mesa Fuera 1", icon:"🌳"},
@@ -1023,7 +1087,8 @@ function showView(view){
 function openTable(id, name){
   currentTable = id;
   showView("pos");
-  document.getElementById("posTableName").textContent = "📍 " + name;
+  document.getElementById("posTableName").textContent = (id === TAKEOUT_ID ? "🥡 " : "📍 ") + name;
+  document.getElementById("takeoutBanner").style.display = id === TAKEOUT_ID ? "block" : "none";
   renderCategoryTabs();
   renderProducts();
   renderCart();
@@ -1034,6 +1099,7 @@ function closeTable(){
   renderTables();
 }
 document.getElementById("btnBack").addEventListener("click", closeTable);
+document.getElementById("btnTakeout").addEventListener("click", ()=> openTable(TAKEOUT_ID, "Pedido para llevar"));
 
 /* ================= HISTORY VIEW ================= */
 document.getElementById("btnHistory").addEventListener("click", ()=>{
@@ -1121,6 +1187,7 @@ function renderHistory(){
   });
 }
 function tableNameById(id){
+  if(id === TAKEOUT_ID) return "Pedido para llevar 🥡";
   const all = [...TABLES.sala, ...TABLES.fuera, ...TABLES.barra];
   const found = all.find(t => t.id === id);
   return found ? found.name : id;
@@ -1146,11 +1213,13 @@ function renderProducts(){
   const el = document.getElementById("productsGrid");
   el.innerHTML = "";
   MENU[currentCategory].forEach(p=>{
+    const surcharge = getTakeoutSurcharge(p);
+    const displayPrice = p.price + surcharge;
     const card = document.createElement("div");
     card.className = "product-card";
     card.innerHTML = `
       <div class="pname">${p.name}</div>
-      <div class="pprice">$${p.price.toFixed(2)}</div>
+      <div class="pprice">$${displayPrice.toFixed(2)}${surcharge > 0 ? `<span class="takeout-tag">🥡 +$0.25</span>` : ""}</div>
     `;
     card.addEventListener("click", ()=>{
       if(p.flavors){
@@ -1166,15 +1235,17 @@ function renderProducts(){
 /* ================= CART LOGIC ================= */
 function addToCart(product, note){
   const cart = getCart(currentTable);
-  const existing = cart.find(i => i.name === product.name && i.note === note);
+  const surcharge = getTakeoutSurcharge(product);
+  const finalPrice = product.price + surcharge;
+  const existing = cart.find(i => i.name === product.name && i.note === note && i.takeout === (surcharge > 0));
   if(existing){
     existing.qty += 1;
   }else{
-    cart.push({name:product.name, price:product.price, qty:1, note:note});
+    cart.push({name:product.name, price:finalPrice, qty:1, note:note, takeout:surcharge > 0});
   }
   saveCarts();
   renderCart();
-  showToast(`${product.name} agregado ✅`);
+  showToast(`${product.name} agregado ✅${surcharge > 0 ? " (+$0.25 para llevar)" : ""}`);
 }
 function changeQty(index, delta){
   const cart = getCart(currentTable);
@@ -1239,7 +1310,7 @@ function renderCart(){
       div.innerHTML = `
         <div class="cart-item-top">
           <div>
-            <div class="cart-item-name">${item.name}</div>
+            <div class="cart-item-name">${item.name}${item.takeout ? `<span class="takeout-tag">🥡 +$0.25</span>` : ""}</div>
             ${item.note ? `<div class="cart-item-note">Sabor: ${item.note}</div>` : ""}
           </div>
           <button class="cart-item-remove" title="Eliminar">✕</button>
@@ -1428,7 +1499,7 @@ function saveImageToGallery(dataUrl, filename){
       showToast("Mantén presionada la foto para guardarla en tu galería 📷");
     }catch(err2){
       console.error("Tampoco se pudo abrir la foto en pestaña nueva:", err2);
-    }
+   }
   }
 }
 
