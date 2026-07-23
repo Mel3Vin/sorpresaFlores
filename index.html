@@ -1,259 +1,840 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Flores y Cupones</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body {
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      transition: background-image 1s ease-in-out;
-    }
-    
-    /* Gradientes de respaldo románticos */
-    .bg-gradient-1 {
-      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-    }
-    
-    .bg-gradient-2 {
-      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
-    }
-    
-    .bg-gradient-3 {
-      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-    }
-    
-    .bg-gradient-4 {
-      background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frutería Málaga - Punto de Venta</title>
+<style>
+  :root{
+    --rojo:#e2402a;
+    --rojo-dark:#c22e1c;
+    --naranja:#ff8a34;
+    --verde:#3fa34d;
+    --verde-dark:#2e7d38;
+    --crema:#fff8ee;
+    --gris:#5c5c5c;
+    --libre:#3fa34d;
+    --ocupada:#e2402a;
+    --shadow:0 6px 18px rgba(0,0,0,.12);
+    --radius:16px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:linear-gradient(160deg,#fff8ee 0%,#ffece0 100%);
+    color:#2b2b2b;
+    min-height:100vh;
+  }
+  header.app-header{
+    background:linear-gradient(120deg,var(--rojo),var(--naranja));
+    color:#fff;
+    padding:18px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    box-shadow:var(--shadow);
+    position:sticky;
+    top:0;
+    z-index:50;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  header.app-header .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  header.app-header .brand h1{
+    font-size:1.35rem;
+    line-height:1.1;
+  }
+  header.app-header .brand span.sub{
+    display:block;
+    font-size:.78rem;
+    font-weight:400;
+    opacity:.9;
+  }
+  header.app-header .logo{
+    font-size:2rem;
+    background:rgba(255,255,255,.2);
+    border-radius:50%;
+    width:52px;height:52px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .header-actions{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .btn-back{
+    background:rgba(255,255,255,.2);
+    color:#fff;
+    border:none;
+    padding:10px 16px;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+    display:none;
+    transition:.2s;
+  }
+  .btn-back:hover{background:rgba(255,255,255,.35);}
+  .btn-back.show{display:inline-flex; align-items:center; gap:6px;}
+  .btn-history{
+    background:rgba(255,255,255,.2);
+    color:#fff;
+    border:none;
+    padding:10px 16px;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.2s;
+  }
+  .btn-history:hover{background:rgba(255,255,255,.35);}
+  .btn-history.active{background:#fff; color:var(--rojo-dark);}
 
-    /* Estilos para la pantalla de sorpresa con fondo */
-    #sorpresa {
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      transition: background-image 1s ease-in-out;
+  /* ---------- HISTORY VIEW ---------- */
+  #historyView{display:none;}
+  .history-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .history-header h2{color:var(--rojo-dark); font-size:1.3rem;}
+  .history-summary{
+    background:#fff;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:16px 20px;
+    display:flex;
+    gap:24px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .history-summary .stat{display:flex; flex-direction:column;}
+  .history-summary .stat .label{font-size:.78rem; color:var(--gris); font-weight:600;}
+  .history-summary .stat .value{font-size:1.3rem; font-weight:800; color:var(--verde-dark);}
+  .btn-clear-history{
+    background:none;
+    border:2px solid #eddfce;
+    color:var(--gris);
+    padding:9px 14px;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+    font-size:.82rem;
+  }
+  .btn-clear-history:hover{border-color:var(--rojo); color:var(--rojo);}
+  .history-list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .history-empty{
+    background:#fff;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:40px 20px;
+    text-align:center;
+    color:#999;
+  }
+  .history-card{
+    background:#fff;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:16px 18px;
+  }
+  .history-card-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:10px;
+    padding-bottom:10px;
+    border-bottom:2px solid #f1e5d8;
+  }
+  .history-card-table{
+    font-weight:800;
+    color:var(--rojo-dark);
+    font-size:1rem;
+  }
+  .history-card-date{
+    font-size:.78rem;
+    color:var(--gris);
+  }
+  .history-card-total{
+    font-weight:800;
+    color:var(--verde-dark);
+    font-size:1.1rem;
+  }
+  .history-items{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .history-item-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:.85rem;
+    color:#444;
+  }
+  .history-item-row .hname{font-weight:600;}
+  .history-item-row .hnote{font-size:.75rem; color:var(--gris); font-style:italic;}
+  .payment-badge{
+    display:inline-block;
+    margin-top:4px;
+    font-size:.72rem;
+    font-weight:700;
+    padding:3px 10px;
+    border-radius:999px;
+    color:#fff;
+  }
+  .payment-badge.efectivo{background:var(--verde);}
+  .payment-badge.transferencia{background:#3f7fa3;}
+  .history-photo{
+    margin-top:10px;
+    max-width:140px;
+    border-radius:10px;
+    border:2px solid #f1e5d8;
+    cursor:pointer;
+    display:block;
+  }
+
+  main{
+    max-width:1200px;
+    margin:0 auto;
+    padding:22px 16px 60px;
+  }
+
+  /* ---------- TABLE SELECTION VIEW ---------- */
+  .section-title{
+    font-size:1.2rem;
+    color:var(--rojo-dark);
+    margin:26px 0 12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .section-title:first-child{margin-top:0;}
+  .tables-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    gap:14px;
+  }
+  .table-card{
+    background:#fff;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px 10px;
+    text-align:center;
+    cursor:pointer;
+    border:3px solid transparent;
+    transition:transform .18s ease, box-shadow .18s ease;
+    position:relative;
+  }
+  .table-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 10px 24px rgba(0,0,0,.18);
+  }
+  .table-card .icon{font-size:2.2rem;}
+  .table-card .name{font-weight:700; margin-top:6px; font-size:1.02rem;}
+  .table-card .status{
+    margin-top:8px;
+    font-size:.75rem;
+    font-weight:700;
+    padding:4px 10px;
+    border-radius:999px;
+    display:inline-block;
+    color:#fff;
+  }
+  .status.libre{background:var(--libre);}
+  .status.ocupada{background:var(--ocupada);}
+  .table-card .total-mini{
+    margin-top:6px;
+    font-size:.78rem;
+    color:var(--gris);
+    font-weight:600;
+  }
+  .table-card.occupied-border{border-color:var(--ocupada);}
+
+  /* ---------- POS VIEW ---------- */
+  #posView{display:none;}
+  .pos-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .pos-header h2{
+    color:var(--rojo-dark);
+    font-size:1.3rem;
+  }
+  .pos-layout{
+    display:grid;
+    grid-template-columns:1fr 380px;
+    gap:20px;
+  }
+  @media (max-width:880px){
+    .pos-layout{grid-template-columns:1fr;}
+  }
+
+  .menu-panel{
+    background:#fff;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:16px;
+  }
+  .category-tabs{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding-bottom:10px;
+    margin-bottom:14px;
+    border-bottom:2px solid #f1e5d8;
+  }
+  .category-tabs button{
+    flex:0 0 auto;
+    background:#fdeee5;
+    color:var(--rojo-dark);
+    border:none;
+    padding:9px 14px;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+    font-size:.85rem;
+    white-space:nowrap;
+    transition:.2s;
+  }
+  .category-tabs button.active{
+    background:linear-gradient(120deg,var(--rojo),var(--naranja));
+    color:#fff;
+  }
+  .products-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:12px;
+  }
+  .product-card{
+    background:var(--crema);
+    border:2px solid #f3e3d3;
+    border-radius:12px;
+    padding:12px 10px;
+    cursor:pointer;
+    text-align:center;
+    transition:.15s;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    min-height:96px;
+  }
+  .product-card:hover{
+    border-color:var(--naranja);
+    transform:translateY(-2px);
+    box-shadow:0 6px 14px rgba(0,0,0,.1);
+  }
+  .product-card .pname{font-weight:700; font-size:.88rem; line-height:1.2;}
+  .product-card .pprice{
+    margin-top:6px;
+    color:var(--verde-dark);
+    font-weight:700;
+    font-size:.85rem;
+  }
+
+  /* Cart panel */
+  .cart-panel{
+    background:#fff;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    max-height:calc(100vh - 140px);
+    position:sticky;
+    top:96px;
+  }
+  .cart-panel h3{
+    color:var(--rojo-dark);
+    margin-bottom:12px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .cart-items{
+    flex:1;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    padding-right:4px;
+  }
+  .cart-empty{
+    color:#999;
+    text-align:center;
+    padding:30px 10px;
+    font-size:.9rem;
+  }
+  .cart-item{
+    background:var(--crema);
+    border-radius:10px;
+    padding:10px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .cart-item-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:6px;
+  }
+  .cart-item-name{font-weight:700; font-size:.88rem;}
+  .cart-item-note{font-size:.72rem; color:var(--gris); font-style:italic;}
+  .cart-item-remove{
+    background:none;
+    border:none;
+    color:var(--rojo);
+    font-size:1.1rem;
+    cursor:pointer;
+    line-height:1;
+  }
+  .cart-item-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .qty-control{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:#fff;
+    border-radius:8px;
+    padding:2px 6px;
+    border:1px solid #eddfce;
+  }
+  .qty-control button{
+    background:var(--verde);
+    color:#fff;
+    border:none;
+    width:24px;height:24px;
+    border-radius:6px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:.9rem;
+  }
+  .qty-control button.minus{background:var(--rojo);}
+  .qty-control span{font-weight:700; min-width:18px; text-align:center;}
+  .cart-item-subtotal{font-weight:700; color:var(--verde-dark); font-size:.9rem;}
+
+  .cart-summary{
+    border-top:2px solid #f1e5d8;
+    margin-top:12px;
+    padding-top:12px;
+  }
+  .summary-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:.95rem;
+    margin-bottom:6px;
+  }
+  .summary-row.total{
+    font-size:1.25rem;
+    font-weight:800;
+    color:var(--rojo-dark);
+  }
+  .btn-finalize{
+    width:100%;
+    margin-top:12px;
+    background:linear-gradient(120deg,var(--verde),var(--verde-dark));
+    color:#fff;
+    border:none;
+    padding:14px;
+    border-radius:12px;
+    font-weight:700;
+    font-size:1rem;
+    cursor:pointer;
+    transition:.2s;
+  }
+  .btn-finalize:hover{transform:translateY(-2px); box-shadow:0 8px 18px rgba(63,163,77,.35);}
+  .btn-finalize:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+    transform:none;
+  }
+  .btn-save-order{
+    width:100%;
+    margin-top:12px;
+    background:#fff;
+    color:var(--naranja);
+    border:2px solid var(--naranja);
+    padding:13px;
+    border-radius:12px;
+    font-weight:700;
+    font-size:.95rem;
+    cursor:pointer;
+    transition:.2s;
+  }
+  .btn-save-order:hover{background:#fff3e8;}
+  .btn-save-order:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+    background:#fff;
+  }
+  .btn-clear{
+    width:100%;
+    margin-top:8px;
+    background:none;
+    border:2px solid #eddfce;
+    color:var(--gris);
+    padding:9px;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+    font-size:.85rem;
+  }
+  .btn-clear:hover{border-color:var(--rojo); color:var(--rojo);}
+
+  /* Modal for flavors */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.5);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:16px;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-box{
+    background:#fff;
+    border-radius:var(--radius);
+    padding:22px;
+    max-width:420px;
+    width:100%;
+    box-shadow:0 20px 40px rgba(0,0,0,.25);
+    animation:popin .18s ease;
+  }
+  @keyframes popin{
+    from{transform:scale(.92); opacity:0;}
+    to{transform:scale(1); opacity:1;}
+  }
+  .modal-box h3{color:var(--rojo-dark); margin-bottom:14px;}
+  .flavor-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+    margin-bottom:16px;
+  }
+  .flavor-grid button{
+    background:var(--crema);
+    border:2px solid #f3e3d3;
+    padding:10px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+    font-size:.85rem;
+    transition:.15s;
+  }
+  .flavor-grid button:hover, .flavor-grid button.selected{
+    background:linear-gradient(120deg,var(--rojo),var(--naranja));
+    color:#fff;
+    border-color:transparent;
+  }
+  .modal-actions{
+    display:flex;
+    gap:10px;
+  }
+  .modal-actions button{
+    flex:1;
+    padding:11px;
+    border-radius:10px;
+    border:none;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .modal-actions .confirm{background:var(--verde); color:#fff;}
+  .modal-actions .cancel{background:#eee; color:#555;}
+
+  /* Payment modal */
+  .payment-methods{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:16px;
+  }
+  .payment-option{
+    background:var(--crema);
+    border:2px solid #f3e3d3;
+    border-radius:14px;
+    padding:20px 10px;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    font-weight:700;
+    font-size:.95rem;
+    color:#333;
+    transition:.15s;
+  }
+  .payment-option .pico{font-size:2rem;}
+  .payment-option:hover{
+    border-color:var(--naranja);
+    transform:translateY(-2px);
+    box-shadow:0 8px 16px rgba(0,0,0,.1);
+  }
+  .photo-preview-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+    margin-bottom:16px;
+  }
+  #photoPreview{
+    display:none;
+    max-width:100%;
+    max-height:260px;
+    border-radius:12px;
+    border:2px solid #f3e3d3;
+    object-fit:cover;
+  }
+  .photo-capture-btn{
+    display:inline-block;
+    background:linear-gradient(120deg,var(--rojo),var(--naranja));
+    color:#fff;
+    padding:12px 20px;
+    border-radius:12px;
+    font-weight:700;
+    cursor:pointer;
+    text-align:center;
+    transition:.2s;
+  }
+  .photo-capture-btn:hover{transform:translateY(-2px); box-shadow:0 8px 16px rgba(0,0,0,.15);}
+  .visually-hidden-file{
+    position:absolute;
+    width:1px;
+    height:1px;
+    padding:0;
+    margin:-1px;
+    overflow:hidden;
+    clip:rect(0,0,0,0);
+    white-space:nowrap;
+    border:0;
+  }
+
+  /* Toast */
+  .toast{
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--verde-dark);
+    color:#fff;
+    padding:14px 24px;
+    border-radius:12px;
+    font-weight:700;
+    box-shadow:var(--shadow);
+    opacity:0;
+    pointer-events:none;
+    transition:.3s;
+    z-index:200;
+    text-align:center;
+  }
+  .toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+
+  ::-webkit-scrollbar{width:8px; height:8px;}
+  ::-webkit-scrollbar-thumb{background:#f0c9ad; border-radius:10px;}
+
+  /* ---------- TICKET IMPRIMIBLE ---------- */
+  #printTicket{
+    display:none;
+  }
+  .ticket-content{
+    width:280px;
+    font-family:'Courier New', Courier, monospace;
+    color:#000;
+    font-size:12px;
+    line-height:1.4;
+  }
+  .ticket-content .t-center{text-align:center;}
+  .ticket-content .t-title{font-size:15px; font-weight:700;}
+  .ticket-content .t-sep{
+    border-top:1px dashed #000;
+    margin:6px 0;
+  }
+  .ticket-content .t-row{
+    display:flex;
+    justify-content:space-between;
+    gap:6px;
+  }
+  .ticket-content .t-item-name{flex:1;}
+  .ticket-content .t-note{
+    font-size:10.5px;
+    font-style:italic;
+    margin-left:8px;
+  }
+  .ticket-content .t-total{
+    font-size:14px;
+    font-weight:700;
+  }
+  .ticket-content .t-small{font-size:10.5px;}
+  .ticket-content .t-order-label{
+    font-weight:700;
+    font-size:12.5px;
+    letter-spacing:1px;
+  }
+  .ticket-content .t-item{
+    font-size:13px;
+    font-weight:700;
+  }
+
+  .btn-print-ticket{
+    width:100%;
+    margin-top:8px;
+    background:#333;
+    color:#fff;
+    border:none;
+    padding:11px;
+    border-radius:10px;
+    font-weight:700;
+    font-size:.88rem;
+    cursor:pointer;
+  }
+  .btn-print-ticket:hover{background:#111;}
+  .success-msg{
+    text-align:center;
+    color:var(--gris);
+    font-weight:600;
+    margin-bottom:14px;
+    font-size:.95rem;
+  }
+  .history-reprint{
+    margin-top:10px;
+    background:none;
+    border:2px solid #eddfce;
+    color:var(--gris);
+    padding:7px 12px;
+    border-radius:8px;
+    font-weight:600;
+    font-size:.78rem;
+    cursor:pointer;
+  }
+  .history-reprint:hover{border-color:#333; color:#333;}
+
+  @media print{
+    body *{visibility:hidden;}
+    #printTicket, #printTicket *{visibility:visible;}
+    #printTicket{
+      display:block;
+      position:absolute;
+      top:0;
+      left:0;
+      width:auto;
     }
-  </style>
+    @page{margin:6mm;}
+  }
+</style>
 </head>
-<body class="bg-pink-100 flex flex-col items-center justify-center min-h-screen">
+<body>
 
-  <!-- Pantalla de contraseña -->
-  <div id="login" class="flex flex-col items-center justify-center bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full">
-    <h1 class="text-2xl font-bold text-pink-700 mb-4">🔐 Ingresa la contraseña</h1>
-    <input id="password" type="password" placeholder="Escribe aquí..." 
-           class="border border-gray-300 rounded-lg p-2 w-full text-center mb-4 focus:outline-none focus:ring-2 focus:ring-pink-400">
-    <p id="hint" class="text-sm text-gray-500 mb-2"></p>
-    <button onclick="verificarPassword()" 
-            class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-xl">
-      Entrar
-    </button>
-  </div>
-
-  <!-- Contenido desbloqueado -->
-  <div id="contenido" class="hidden flex flex-col items-center">
-    <h1 class="text-3xl font-bold mb-6 text-pink-700 animate-bounce">🌸 Toca una flor 🌸</h1>
-    <div class="flex space-x-6">
-      <button onclick="mostrarCupon('beso')" class="text-6xl hover:scale-110 transition">🌻</button>
-      <button onclick="mostrarCupon('hamburguesa')" class="text-6xl hover:scale-110 transition">🌹</button>
-      <button onclick="mostrarCupon('nuevo')" class="text-6xl hover:scale-110 transition">🌷</button>
-      <button onclick="mostrarCupon('carta')" class="text-6xl hover:scale-110 transition">🌼</button>
-      <button onclick="mostrarCupon('Audio')" class="text-6xl hover:scale-110 transition">🌺</button>
-      <button onclick="mostrarCupon('pelicula')" class="text-6xl hover:scale-110 transition">🪻</button>
-      <button onclick="mostrarCupon('sorpresa')" class="text-6xl hover:scale-110 transition">🌸</button>
+<header class="app-header">
+  <div class="brand">
+    <div class="logo">🍓</div>
+    <div>
+      <h1>Frutería Málaga</h1>
+      <span class="sub">El Carmen, Manabí · Punto de Venta</span>
     </div>
   </div>
+  <div class="header-actions">
+    <button class="btn-back" id="btnBack">⬅ Volver a mesas</button>
+    <button class="btn-history" id="btnHistory">📜 Historial</button>
+  </div>
+</header>
 
-  <!-- Modal genérico -->
-  <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-    <div class="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm w-full">
-      <h2 id="modal-title" class="text-xl font-bold mb-4 text-pink-700"></h2>
-      <p id="modal-text" class="text-gray-700 mb-6"></p>
-      
-      <!-- Reproductor de audio -->
-      <div id="audio-container" class="hidden mb-6">
-        <audio id="audio-player" controls class="w-full rounded-lg">
-          <source id="audio-source" src="" type="audio/mpeg">
-          Tu navegador no soporta el elemento de audio.
-        </audio>
+<main>
+  <!-- TABLE SELECTION VIEW -->
+  <div id="tablesView">
+    <h2 class="section-title">🪑 Sala</h2>
+    <div class="tables-grid" id="salaGrid"></div>
+
+    <h2 class="section-title">🌳 Fuera</h2>
+    <div class="tables-grid" id="fueraGrid"></div>
+
+    <h2 class="section-title">🍹 Barra</h2>
+    <div class="tables-grid" id="barraGrid"></div>
+  </div>
+
+  <!-- POS VIEW -->
+  <div id="posView">
+    <div class="pos-header">
+      <h2 id="posTableName">Mesa</h2>
+    </div>
+    <div class="pos-layout">
+      <div class="menu-panel">
+        <div class="category-tabs" id="categoryTabs"></div>
+        <div class="products-grid" id="productsGrid"></div>
       </div>
-      
-      <button id="modal-btn" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-xl" onclick="cerrarModal()">Cerrar</button>
-    </div>
-  </div>
-
-  <!-- Modal de bienvenida -->
-  <div id="bienvenida" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-    <div class="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm w-full animate-[fadeIn_0.4s_ease]">
-      <h2 class="text-2xl font-bold mb-4 text-pink-700">🎉 ¡Bienvenida Kerly! 🎉</h2>
-      <p class="text-gray-700 mb-6">Este jardín de flores es solo para ti y cada flor tiene su sorpresa. ¡Tócalas! 💕</p>
-      <button onclick="cerrarBienvenida()" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-xl">
-        Ver mis flores
-      </button>
-    </div>
-  </div>
-
-  <!-- Pantalla de sorpresa -->
-  <div id="sorpresa" class="hidden fixed inset-0 flex items-center justify-center flex-col">
-    <div class="bg-white bg-opacity-90 p-8 rounded-2xl shadow-xl max-w-2xl mx-4">
-      <h2 class="text-4xl font-bold text-pink-700 mb-4 text-center">🎁 Muy pronto será revelada 🎁</h2>
-      <p class="text-gray-800 mb-6 text-center">Estoy preparando algo muy especial para ti. ¡No puedo esperar a compartirlo! 💖</p>
-      <p class="text-gray-600 mb-8 text-center">Instrucciones para esperar la gran sorpresa.</p>
-      <div class="text-xl font-bold text-center leading-loose text-pink-700">
-        1. No te desesperes y no estes nerviosa.<br>
-        2. No te enojes jajajaja<br>
-        3. Ten mucha paciencia se que te va a hacer muy feliz y que te va a gustar mucho<br>
-        4. 00/00/0000 00:00:00<br>
-        5. Muy pronto empezara la cuenta regresiva<br>
-        6. Te amo mucho mi amor ♥️<br>
-        7. Recuerda que eres la persona mas especial en mi vida 💖<br>
-        8. Cada dia mas cerca de todo<br>
+      <div class="cart-panel">
+        <h3>🛒 Carrito</h3>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-summary">
+          <div class="summary-row total">
+            <span>Total</span>
+            <span id="cartTotal">$0.00</span>
+          </div>
+          <button class="btn-save-order" id="btnSaveOrder" disabled>💾 Guardar pedido</button>
+          <button class="btn-finalize" id="btnFinalize" disabled>✅ Cobrar / Finalizar venta</button>
+          <button class="btn-clear" id="btnClearCart">🗑 Vaciar carrito</button>
+        </div>
       </div>
-      <div class="text-center mt-8">
-        <button onclick="cerrarSorpresa()" class="bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-xl">
-          Volver
+    </div>
+  </div>
+
+  <!-- HISTORY VIEW -->
+  <div id="historyView">
+    <div class="history-header">
+      <h2>📜 Historial de Ventas</h2>
+      <button class="btn-clear-history" id="btnClearHistory">🗑 Borrar historial</button>
+    </div>
+    <div class="history-summary" id="historySummary"></div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+</main>
+
+<!-- Payment Modal -->
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal-box">
+
+    <!-- Paso 1: elegir método -->
+    <div id="paymentStepMethod">
+      <h3>💳 ¿Cómo va a pagar?</h3>
+      <div class="payment-methods">
+        <button class="payment-option" id="payCash">
+          <span class="pico">💵</span>
+          <span>Efectivo</span>
+        </button>
+        <button class="payment-option" id="payTransfer">
+          <span class="pico">🏦</span>
+          <span>Transferencia</span>
         </button>
       </div>
+      <div class="modal-actions">
+        <button class="cancel" id="paymentCancel">Cancelar</button>
+      </div>
     </div>
-  </div>
 
-  <script>
-    // --- IMÁGENES DE GITHUB ---
-    const backgrounds = [
-      "https://raw.githubusercontent.com/Mel3Vin/fotos/main/fondo1.jpg",
-      "https://raw.githubusercontent.com/Mel3Vin/fotos/main/fondo2.jpg",
-      "https://raw.githubusercontent.com/Mel3Vin/fotos/main/fondo3.jpg",
-      "https://raw.githubusercontent.com/Mel3Vin/fotos/main/fondo4.jpg"
-    ];
-    let currentBackground = 0;
-
-    function cambiarFondo() {
-      const bodyElement = document.body;
-      const sorpresaElement = document.getElementById('sorpresa');
-      
-      bodyElement.style.backgroundImage = `url('${backgrounds[currentBackground]}')`;
-      sorpresaElement.style.backgroundImage = `url('${backgrounds[currentBackground]}')`;
-      
-      currentBackground = (currentBackground + 1) % backgrounds.length;
-    }
-    
-    // Inicializar fondos
-    cambiarFondo();
-    setInterval(cambiarFondo, 5000); // Cambia cada 5s
-
-    // --- LÓGICA DE CONTRASEÑA ---
-    let intentos = 0;
-    const passwordCorrecta = "Sprite";
-
-    // Permitir enter para enviar
-    document.getElementById("password").addEventListener("keypress", function(event) {
-      if (event.key === "Enter") {
-        verificarPassword();
-      }
-    });
-
-    function verificarPassword() {
-      const passInput = document.getElementById("password").value;
-      const hint = document.getElementById("hint");
-
-      if (passInput === passwordCorrecta) {
-        document.getElementById("login").classList.add("hidden");
-        document.getElementById("bienvenida").classList.remove("hidden");
-      } else {
-        intentos++;
-        if (intentos === 1) {
-          hint.textContent = "Pista: Sabor de gaseosa muy preferida mia.";
-        } else if (intentos === 2) {
-          hint.textContent = "Pista: No tiene color y es muy refrescante.";
-        } else {
-          hint.textContent = "Sigue intentando, sé que puedes adivinar";
-        }
-        // Limpiar el campo de contraseña
-        document.getElementById("password").value = "";
-      }
-    }
-
-    function cerrarBienvenida() {
-      document.getElementById("bienvenida").classList.add("hidden");
-      document.getElementById("contenido").classList.remove("hidden");
-    }
-
-    function mostrarCupon(tipo) {
-      const modal = document.getElementById('modal');
-      const title = document.getElementById('modal-title');
-      const text = document.getElementById('modal-text');
-      const btn = document.getElementById('modal-btn');
-      const audioContainer = document.getElementById('audio-container');
-      const audioSource = document.getElementById('audio-source');
-      const audioPlayer = document.getElementById('audio-player');
-
-      // Ocultar audio por defecto y pausar si estaba reproduciéndose
-      audioContainer.classList.add('hidden');
-      audioPlayer.pause();
-      audioPlayer.currentTime = 0;
-
-      if (tipo === 'beso') {
-        title.textContent = "💋 Cupón inválido";
-        text.textContent = "Este cumpón ya fue cambiado por un beso 😘";
-        btn.textContent = "Cerrar";
-        btn.onclick = cerrarModal;
-      } else if (tipo === 'hamburguesa') {
-        title.textContent = "🍔 Cupón válido";
-        text.textContent = "Este cupón ya no está válido ya lo ocupo espero que te haya gustado, te quiero ♥️. ";
-        btn.textContent = "Cerrar";
-        btn.onclick = cerrarModal;
-      } else if (tipo === 'nuevo') {
-        title.textContent = "🌷 Cupón Casa";
-        text.textContent = "Este cupón es válido para pasar un dia en mi casa 🏠";
-        btn.textContent = "Cerrar";
-        btn.onclick = cerrarModal;
-      } else if (tipo === 'carta') {
-        title.textContent = "🌼 Cupón Carta" ;
-        text.textContent = "Este cupón es no es válido la carta fue entregada 📝";
-        btn.textContent = "Cerrar";
-        btn.onclick = cerrarModal;
-      } else if (tipo === 'Audio') {
-        title.textContent = "🌺 Cupón Poema" ;
-        text.textContent = "Este cupón es válido para poder escuchar un poema que escribí para ti 🎤";
-        
-        // Mostrar reproductor de audio
-        audioContainer.classList.remove('hidden');
-        // CAMBIA ESTA URL POR LA URL DE TU AUDIO EN GITHUB
-        audioSource.src = "https://raw.githubusercontent.com/Mel3Vin/fotos/main/Audio1.mp3";
-        audioPlayer.load();
-        
-        btn.textContent = "Cerrar";
-        btn.onclick = cerrarModal;
-      } else if (tipo === 'pelicula') {
-        title.textContent = "🌼 Cupón pelicula" ;
-        text.textContent = "Este cupón es válido para ver una pelicula juntos 🎬";
-        btn.textContent = "Cerrar";
-        btn.onclick = cerrarModal;
-      } else if (tipo === 'sorpresa') {
-        title.textContent = "🎁 Cupón Sorpresa";
-        text.textContent = "Haz clic para ir a la sorpresa 👀";
-        btn.textContent = "Ir a sorpresa";
-        btn.onclick = () => {
-          modal.classList.add('hidden');
-          document.getElementById('sorpresa').classList.remove('hidden');
-        };
-      }
-
-      modal.classList.remove('hidden');
-    }
-
-    function cerrarModal() {
-      const audioPlayer = document.getElementById('audio-player');
-      audioPlayer.pause();
-      audioPlayer.currentTime = 0;
-      document.getElementById('modal').classList.add('hidden');
-    }
-
-    function cerrarSorpresa() {
-      document.getElementById('sorpresa').classList.add('hidden');
-    }
-  </script>
-</body>
-</html>
+    <!-- Paso 2: foto de comprobante -->
+    <div id="paymentStepPhoto" style="display:none;">
+      <h3>📸 Comprobante de transferencia</h3>
+      <div class="photo-preview-wrap">
+        <img id="photoPreview" alt="Comprobante">
+        <label class="photo-capture-btn" for="transferPhotoInput" id="photoCaptureLabel">📷 Tomar foto / Adjuntar</label>
+        <input type="file" id="transferPhotoInput" accept="image/*" class="visually-hidd
