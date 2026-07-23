@@ -836,8 +836,8 @@
       <h3>📸 Comprobante de transferencia</h3>
       <div class="photo-preview-wrap">
         <img id="photoPreview" alt="Comprobante">
-        <label class="photo-capture-btn" for="transferPhotoInput" id="photoCaptureLabel">📷 Tomar foto / Adjuntar</label>
-        <input type="file" id="transferPhotoInput" accept="image/*" class="visually-hiddhidden-file">
+        <label class="photo-capture-btn" for="transferPhotoInput" id="photoCaptureLabel">📷 Tomar foto</label>
+        <input type="file" id="transferPhotoInput" accept="image/*" capture="environment" class="visually-hidden-file">
       </div>
       <div class="modal-actions">
         <button class="cancel" id="photoBack">Atrás</button>
@@ -941,6 +941,7 @@ const TABLES = {
     {id:"S1", name:"Mesa Sala 1", icon:"🪑"},
     {id:"S2", name:"Mesa Sala 2", icon:"🪑"},
     {id:"S3", name:"Mesa Sala 3", icon:"🪑"},
+    {id:"S4", name:"Mesa Sala dentro", icon:"🪑"},
   ],
   fuera: [
     {id:"F1", name:"Mesa Fuera 1", icon:"🌳"},
@@ -952,6 +953,7 @@ const TABLES = {
     {id:"B1", name:"Barra 1", icon:"🍹"},
     {id:"B2", name:"Barra 2", icon:"🍹"},
     {id:"B3", name:"Barra 3", icon:"🍹"},
+    {id:"B4", name:"Barra 4", icon:"🍹"},
   ],
 };
 
